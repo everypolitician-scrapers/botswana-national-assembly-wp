@@ -15,7 +15,7 @@ def noko(url)
   Nokogiri::HTML(open(url).read) 
 end
 
-@WIKI = 'http://en.wikipedia.org'
+@WIKI = 'https://en.wikipedia.org'
 
 def wikilink(a)
   return if a.attr('class') == 'new' 
@@ -36,16 +36,16 @@ end
       tds = member.xpath('td')
 
       data = { 
-        constituency: tds[1].text.strip,
         name: tds[2].at_xpath('a') ? tds[2].xpath('a').text.strip : tds.first.text.strip,
+        wikiname: tds[2].xpath('a[not(@class="new")]/@title').text.strip,
         wikipedia: tds[2].xpath('a[not(@class="new")]/@href').text.strip,
+        constituency: tds[1].text.strip,
         party: tds[4].at_xpath('a') ? tds[4].xpath('a').text.strip : tds.last.text.strip,
         source: url,
         term: term,
       }
       data[:wikipedia].prepend @WIKI unless data[:wikipedia].empty?
       data[:constituency] = '' if data[:constituency].include?('Specially elected') or data[:constituency].include?('Ex officio')
-      # puts data.values.to_csv
       added += 1
       ScraperWiki.save_sqlite([:name, :term], data)
     end
