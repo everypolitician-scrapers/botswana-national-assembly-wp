@@ -2,15 +2,12 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'pry'
+require 'scraped'
 require 'scraperwiki'
-require 'nokogiri'
-require 'date'
-require 'open-uri'
 
-# require 'open-uri/cached'
-# require 'colorize'
-# require 'pry'
-# require 'csv'
+require 'open-uri/cached'
+OpenURI::Cache.cache_path = '.cache'
 
 def noko(url)
   Nokogiri::HTML(open(url).read)
@@ -39,11 +36,11 @@ ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
       tds = member.xpath('td')
 
       data = {
-        name:         tds[2].at_xpath('a') ? tds[2].xpath('a').text.strip : tds.first.text.strip,
-        wikiname:     tds[2].xpath('a[not(@class="new")]/@title').text.strip,
-        wikipedia:    tds[2].xpath('a[not(@class="new")]/@href').text.strip,
-        constituency: tds[1].text.strip,
-        party:        tds[4].at_xpath('a') ? tds[4].xpath('a').text.strip : tds.last.text.strip,
+        name:         tds[2].at_xpath('a') ? tds[2].xpath('a').text.tidy : tds.first.text.tidy,
+        wikiname:     tds[2].xpath('a[not(@class="new")]/@title').text.tidy,
+        wikipedia:    tds[2].xpath('a[not(@class="new")]/@href').text.tidy,
+        constituency: tds[1].text.tidy,
+        party:        tds[4].at_xpath('a') ? tds[4].xpath('a').text.tidy : tds.last.text.tidy,
         source:       url,
         term:         term,
       }
