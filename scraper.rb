@@ -9,28 +9,56 @@ require 'scraperwiki'
 require 'open-uri/cached'
 OpenURI::Cache.cache_path = '.cache'
 
-def noko(url)
-  Nokogiri::HTML(open(url).read)
+class MembersPage < Scraped::HTML
+  field :members do
+    noko.xpath('//table[.//th[text()[contains(.,"Constituency")]]]//tr[td]').map do |tr|
+      fragment(tr => MemberRow).to_h
+    end
+  end
+end
+
+class MemberRow < Scraped::HTML
+  field :name do
+    tds[2].at_xpath('a') ? tds[2].xpath('a').text.tidy : tds.first.text.tidy
+  end
+
+  field :wikiname do
+    tds[2].xpath('a[not(@class="new")]/@title').text.tidy
+  end
+
+  field :constituency do
+    return '' if raw_constituency.include?('Specially elected')
+    return '' if raw_constituency.include?('Ex officio')
+    raw_constituency
+  end
+
+  field :party do
+    tds[4].at_xpath('a') ? tds[4].xpath('a').text.tidy : tds.last.text.tidy
+  end
+
+  field :source do
+    url
+  end
+
+  field :term do
+    '2014'
+  end
+
+  private
+
+  def tds
+    noko.css('td')
+  end
+
+  def raw_constituency
+    tds[1].text.tidy
+  end
 end
 
 def scrape_list(url)
-  page = noko(url)
-
-  page.xpath('//table[.//th[text()[contains(.,"Constituency")]]]//tr[td]').each do |tr|
-    tds = tr.xpath('td')
-
-    data = {
-      name:         tds[2].at_xpath('a') ? tds[2].xpath('a').text.tidy : tds.first.text.tidy,
-      wikiname:     tds[2].xpath('a[not(@class="new")]/@title').text.tidy,
-      constituency: tds[1].text.tidy,
-      party:        tds[4].at_xpath('a') ? tds[4].xpath('a').text.tidy : tds.last.text.tidy,
-      source:       url,
-      term:         '2014',
-    }
-    data[:constituency] = '' if data[:constituency].include?('Specially elected') or data[:constituency].include?('Ex officio')
-    puts data.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h if ENV['MORPH_DEBUG']
-    ScraperWiki.save_sqlite(%i[name term], data)
-  end
+  data = MembersPage.new(response: Scraped::Request.new(url: url).response).members
+  data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
+  ScraperWiki.save_sqlite(%i[name term], data)
 end
 
 page = 'https://en.wikipedia.org/wiki/List_of_current_members_of_the_National_Assembly_of_Botswana'
