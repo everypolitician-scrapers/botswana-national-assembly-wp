@@ -27,6 +27,8 @@ end
   '2014' => 'List_of_current_members_of_the_National_Assembly_of_Botswana',
 }
 
+ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
+
 @terms.each do |term, pagename|
   url = "#{@WIKI}/wiki/#{pagename}"
   page = noko(url)
