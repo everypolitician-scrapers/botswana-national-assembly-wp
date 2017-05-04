@@ -15,11 +15,6 @@ end
 
 @WIKI = 'https://en.wikipedia.org'
 
-def wikilink(a)
-  return if a.attr('class') == 'new'
-  @WIKI + a['href']
-end
-
 @pages = [
   'List_of_current_members_of_the_National_Assembly_of_Botswana',
 ]
