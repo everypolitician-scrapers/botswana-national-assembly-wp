@@ -30,7 +30,7 @@ ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
   url = "#{@WIKI}/wiki/#{pagename}"
   page = noko(url)
 
-  page.xpath('//table[.//th[text()[contains(.,"Constituency")]]]').each_with_index do |ct, _i|
+  page.xpath('//table[.//th[text()[contains(.,"Constituency")]]]').each do |ct|
     ct.xpath('tr[td]').each do |member|
       tds = member.xpath('td')
 
