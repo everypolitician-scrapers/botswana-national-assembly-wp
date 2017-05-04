@@ -29,7 +29,6 @@ ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
 @terms.each do |term, pagename|
   url = "#{@WIKI}/wiki/#{pagename}"
   page = noko(url)
-  added = 0
 
   page.xpath('//table[.//th[text()[contains(.,"Constituency")]]]').each_with_index do |ct, _i|
     ct.xpath('tr[td]').each do |member|
@@ -46,9 +45,8 @@ ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
       }
       data[:wikipedia].prepend @WIKI unless data[:wikipedia].empty?
       data[:constituency] = '' if data[:constituency].include?('Specially elected') or data[:constituency].include?('Ex officio')
-      added += 1
+      puts data.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h if ENV['MORPH_DEBUG']
       ScraperWiki.save_sqlite(%i[name term], data)
     end
   end
-  warn "Added #{added} for #{term}"
 end
