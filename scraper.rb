@@ -20,13 +20,13 @@ def wikilink(a)
   @WIKI + a['href']
 end
 
-@terms = {
-  '2014' => 'List_of_current_members_of_the_National_Assembly_of_Botswana',
-}
+@pages = [
+  'List_of_current_members_of_the_National_Assembly_of_Botswana',
+]
 
 ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
 
-@terms.each do |term, pagename|
+@pages.each do |pagename|
   url = "#{@WIKI}/wiki/#{pagename}"
   page = noko(url)
 
@@ -41,7 +41,7 @@ ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
         constituency: tds[1].text.tidy,
         party:        tds[4].at_xpath('a') ? tds[4].xpath('a').text.tidy : tds.last.text.tidy,
         source:       url,
-        term:         term,
+        term:         '2014',
       }
       data[:wikipedia].prepend @WIKI unless data[:wikipedia].empty?
       data[:constituency] = '' if data[:constituency].include?('Specially elected') or data[:constituency].include?('Ex officio')
