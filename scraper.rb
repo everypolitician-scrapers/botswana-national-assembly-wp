@@ -16,22 +16,20 @@ end
 def scrape_list(url)
   page = noko(url)
 
-  page.xpath('//table[.//th[text()[contains(.,"Constituency")]]]').each do |ct|
-    ct.xpath('tr[td]').each do |member|
-      tds = member.xpath('td')
+  page.xpath('//table[.//th[text()[contains(.,"Constituency")]]]//tr[td]').each do |tr|
+    tds = tr.xpath('td')
 
-      data = {
-        name:         tds[2].at_xpath('a') ? tds[2].xpath('a').text.tidy : tds.first.text.tidy,
-        wikiname:     tds[2].xpath('a[not(@class="new")]/@title').text.tidy,
-        constituency: tds[1].text.tidy,
-        party:        tds[4].at_xpath('a') ? tds[4].xpath('a').text.tidy : tds.last.text.tidy,
-        source:       url,
-        term:         '2014',
-      }
-      data[:constituency] = '' if data[:constituency].include?('Specially elected') or data[:constituency].include?('Ex officio')
-      puts data.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h if ENV['MORPH_DEBUG']
-      ScraperWiki.save_sqlite(%i[name term], data)
-    end
+    data = {
+      name:         tds[2].at_xpath('a') ? tds[2].xpath('a').text.tidy : tds.first.text.tidy,
+      wikiname:     tds[2].xpath('a[not(@class="new")]/@title').text.tidy,
+      constituency: tds[1].text.tidy,
+      party:        tds[4].at_xpath('a') ? tds[4].xpath('a').text.tidy : tds.last.text.tidy,
+      source:       url,
+      term:         '2014',
+    }
+    data[:constituency] = '' if data[:constituency].include?('Specially elected') or data[:constituency].include?('Ex officio')
+    puts data.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h if ENV['MORPH_DEBUG']
+    ScraperWiki.save_sqlite(%i[name term], data)
   end
 end
 
