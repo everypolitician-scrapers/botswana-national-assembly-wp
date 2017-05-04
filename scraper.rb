@@ -55,12 +55,9 @@ class MemberRow < Scraped::HTML
   end
 end
 
-def scrape_list(url)
-  data = MembersPage.new(response: Scraped::Request.new(url: url).response).members
-  data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
-  ScraperWiki.save_sqlite(%i[name term], data)
-end
+url = 'https://en.wikipedia.org/wiki/List_of_current_members_of_the_National_Assembly_of_Botswana'
+data = MembersPage.new(response: Scraped::Request.new(url: url).response).members
+data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
 
-page = 'https://en.wikipedia.org/wiki/List_of_current_members_of_the_National_Assembly_of_Botswana'
 ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
-scrape_list(page)
+ScraperWiki.save_sqlite(%i[name term], data)
