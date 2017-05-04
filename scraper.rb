@@ -13,16 +13,7 @@ def noko(url)
   Nokogiri::HTML(open(url).read)
 end
 
-@WIKI = 'https://en.wikipedia.org'
-
-@pages = [
-  'List_of_current_members_of_the_National_Assembly_of_Botswana',
-]
-
-ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
-
-@pages.each do |pagename|
-  url = "#{@WIKI}/wiki/#{pagename}"
+def scrape_list(url)
   page = noko(url)
 
   page.xpath('//table[.//th[text()[contains(.,"Constituency")]]]').each do |ct|
@@ -43,3 +34,7 @@ ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
     end
   end
 end
+
+page = 'https://en.wikipedia.org/wiki/List_of_current_members_of_the_National_Assembly_of_Botswana'
+ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
+scrape_list(page)
