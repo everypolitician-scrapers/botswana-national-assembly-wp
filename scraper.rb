@@ -19,7 +19,7 @@ end
 
 class MemberRow < Scraped::HTML
   field :name do
-    tds[2].at_xpath('a') ? tds[2].xpath('a').text.tidy : tds.first.text.tidy
+    tds[2].at_xpath('a/@title').text.sub(/\(.*/,'').tidy
   end
 
   field :wikiname do
