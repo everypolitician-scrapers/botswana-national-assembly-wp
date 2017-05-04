@@ -40,10 +40,6 @@ class MemberRow < Scraped::HTML
     url
   end
 
-  field :term do
-    '2014'
-  end
-
   private
 
   def tds
@@ -56,7 +52,10 @@ class MemberRow < Scraped::HTML
 end
 
 url = 'https://en.wikipedia.org/wiki/List_of_current_members_of_the_National_Assembly_of_Botswana'
-data = MembersPage.new(response: Scraped::Request.new(url: url).response).members
+data = MembersPage.new(response: Scraped::Request.new(url: url).response).members.map do |mem|
+  mem.merge(term: '2014')
+end
+
 data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
 
 ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
