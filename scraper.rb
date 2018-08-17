@@ -5,11 +5,17 @@
 require 'pry'
 require 'scraped'
 require 'scraperwiki'
+require 'wikidata_ids_decorator'
+
+require_relative 'lib/remove_notes'
 
 require 'open-uri/cached'
 OpenURI::Cache.cache_path = '.cache'
 
 class MembersPage < Scraped::HTML
+  decorator RemoveNotes
+  decorator WikidataIdsDecorator::Links
+
   field :members do
     noko.xpath('//table[.//th[text()[contains(.,"Constituency")]]]//tr[td]').map do |tr|
       fragment(tr => MemberRow).to_h
@@ -18,8 +24,12 @@ class MembersPage < Scraped::HTML
 end
 
 class MemberRow < Scraped::HTML
+  field :id do
+    tds[2].css('a/@wikidata').map(&:text).map(&:tidy).first
+  end
+
   field :name do
-    tds[2].at_xpath('a/@title').text.sub(/\(.*/,'').tidy
+    tds[2].css('a').map(&:text).map(&:tidy).first
   end
 
   field :wikiname do
@@ -33,11 +43,11 @@ class MemberRow < Scraped::HTML
   end
 
   field :party do
-    tds[4].at_xpath('a') ? tds[4].xpath('a').text.tidy : tds.last.text.tidy
+    tds[4].css('a').map(&:text).map(&:tidy).first
   end
 
-  field :source do
-    url
+  field :party_id do
+    tds[4].css('a/@wikidata').map(&:text).first
   end
 
   private
